@@ -16,6 +16,7 @@
 5.  tushare的免费token可以使用。
 6.  注册免费tushare token https://tushare.pro/register?reg=286095
 7.  运行前将你的token更新到 GetData.py中ts.set_token('your token here')
+8.  XGBoost的调参一直做的不好，目前参数有些过拟合。后来明白了，是数据本身的问题。
 
 
 #### 使用说明
