@@ -8,10 +8,10 @@ from  sometools import tools
 import matplotlib.pyplot as plt
  
 class GetData(object):
-    #pro=ts.pro_api(token='d37e1279d92ac6d0470c5a14eb4dd227e4dfbaa8261e66ce2af19684')
+    
          
     def __init__(self):
-        ts.set_token('d37e1279d92ac6d0470c5a14eb4dd227e4dfbaa8261e66ce2af19684')
+        ts.set_token('your token here')
         self.pro=ts.pro_api()
         pass
         
