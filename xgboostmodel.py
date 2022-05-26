@@ -16,28 +16,8 @@ import GetData
 
 class BuildFeature(object):
     def __init__(self, ):
-        ts.set_token("your token here")
-        self.pro = ts.pro_api()
        
         self.tool=tools()
-    
-    def getastockdata(self,ts_code="000001",period=365):
-        today = datetime.date.today()
-        today = today.strftime('%Y%m%d')
-        startday = datetime.date.today() - datetime.timedelta(days=period)
-        startday = startday.strftime('%Y%m%d')
-        # daily返回的是未复权数据
-        # data= self.pro.daily(ts_code=ts_code, start_date=startday, end_date=today)
-        # probar返回的是复权数据
-        # print(tscode)
-        data = ts.pro_bar(ts_code=ts_code, adj='qfq', start_date=startday, end_date=today)
-        if data is None:
-            data = pd.DataFrame(columns=['trade_date', 'B', 'C', 'D'])
-        if not data.empty:
-            data = data.sort_index(ascending=False)
-        sorteddata = data.sort_values(by="trade_date", ascending=True)
-        sorteddata = sorteddata.reset_index(drop=True)
-        return sorteddata
     
     def splitbars(self,bars, y_days=5):
         ###
@@ -176,7 +156,7 @@ class BuildFeature(object):
             try:
                 # time.sleep(0.15)
                 
-                bars=self.getastockdata(i)# 得到K线
+                bars=gd.GetAStockData(i)# 得到K线
                 
                 if len(bars)>100:
                     featureret=self.getfeatures(bars,y=0) #get today's feature
