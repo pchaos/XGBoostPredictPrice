@@ -154,7 +154,7 @@ class BuildFeature(object):
         j=0
         for i in allstock.ts_code:
             try:
-                # time.sleep(0.15)
+                time.sleep(0.15)
                 
                 bars=gd.GetAStockData(i)# 得到K线
                 
