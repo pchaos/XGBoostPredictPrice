@@ -2,10 +2,13 @@
 """
 Created on Fri Apr 22 10:01:10 2022
 
-@author: Jerry Chen
+@author: Administrator
 """
 
 import xgboost as xgb
+
+# from sklearn.model_selection import KFold, cross_val_score as CVS, train_test_split as TTS
+# from sklearn.metrics import mean_squared_error as MSE
 import pandas as pd
 import datetime
 import tushare as ts
@@ -16,8 +19,28 @@ import GetData
 
 class BuildFeature(object):
     def __init__(self, ):
+        ts.set_token("d37e1279d92ac6d0470c5a14eb4dd227e4dfbaa8261e66ce2af19684")
+        self.pro = ts.pro_api()
        
         self.tool=tools()
+    
+    # def getastockdata(self,ts_code="000001",period=365):
+    #     today = datetime.date.today()
+    #     today = today.strftime('%Y%m%d')
+    #     startday = datetime.date.today() - datetime.timedelta(days=period)
+    #     startday = startday.strftime('%Y%m%d')
+    #     # daily返回的是未复权数据
+    #     # data= self.pro.daily(ts_code=ts_code, start_date=startday, end_date=today)
+    #     # probar返回的是复权数据
+    #     # print(tscode)
+    #     data = ts.pro_bar(ts_code=ts_code, adj='qfq', start_date=startday, end_date=today)
+    #     if data is None:
+    #         data = pd.DataFrame(columns=['trade_date', 'B', 'C', 'D'])
+    #     if not data.empty:
+    #         data = data.sort_index(ascending=False)
+    #     sorteddata = data.sort_values(by="trade_date", ascending=True)
+    #     sorteddata = sorteddata.reset_index(drop=True)
+    #     return sorteddata
     
     def splitbars(self,bars, y_days=5):
         ###
@@ -141,7 +164,14 @@ class BuildFeature(object):
         
         return feature
         
+    def getallstock(self):
 
+        allstock = self.pro.query('stock_basic', exchange='', list_status='L',
+                                  fields='ts_code,symbol,name,area,industry,list_date')
+        allstock = allstock[~allstock.name.str.contains('ST')]
+        # 重新索引
+        allstock = allstock.reset_index(drop=True)
+        return allstock
     
     def run(self,days=[3,5]):#注意：days列表里必须至少有一项，且不为0
         
@@ -154,7 +184,7 @@ class BuildFeature(object):
         j=0
         for i in allstock.ts_code:
             try:
-                time.sleep(0.15)
+                # time.sleep(0.15)
                 
                 bars=gd.GetAStockData(i)# 得到K线
                 
@@ -181,7 +211,7 @@ class BuildFeature(object):
         return result
 
 bf=BuildFeature()
-days=[3,5,10]
+days=[1,3,5,10,20]
 ret=bf.run(days=days)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
 predict_data=ret[0]
 today = datetime.date.today()
@@ -191,10 +221,13 @@ for i in range(len(days)):
    
     data=ret[i+1]
     
-    x=data.iloc[:,3:]
+    
     
     y=data['股票收益']
-
+    # x=data.iloc[:,3:]
+    x=data.drop(['股票收益','股票名称'],axis=1)
+    
+    # Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
     dfull = xgb.DMatrix(x,y)
     param1 = {'silent':True
               ,'obj':'reg:linear'
@@ -213,7 +246,7 @@ for i in range(len(days)):
     bst=xgb.train(param1,dfull,num_round)
     print("正在预测......")
     
-    xtest=predict_data.iloc[:,3:]
+    xtest=predict_data.drop(['股票收益','股票名称'],axis=1)
     feature=xgb.DMatrix(xtest)
     pred=bst.predict(feature)
     predict_data['股票收益']=pred
