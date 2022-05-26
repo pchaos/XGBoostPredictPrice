@@ -9,9 +9,9 @@
 
 #### 安装教程
 
-1.  此代码在linux下无法运行，因为linux下dataframe返回的数据被自动按title排序了
+1.  5月26日晚上传了新版本，程序能在更多的版本上跑了
 2.  由于要计算全部股票，tushare读取全部股票数据需要近1小时
-3.  计算结束后，在代码目录下生成XXXXXXresult.xls的文件
+3.  计算结束后，在代码目录下生成XXXXXXresult.xls的文件，xxxxxx为当日日期
 4.  tushare目前开始提供因子数据，等tushare因子数据提供的足够多后可以，可以直接使用tushare的因子数据做特征工程
 5.  tushare的免费token可以使用。
 6.  注册免费tushare token https://tushare.pro/register?reg=286095
