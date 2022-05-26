@@ -194,8 +194,7 @@ for i in range(len(days)):
     x=data.iloc[:,3:]
     
     y=data['股票收益']
-    
-    Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
+
     dfull = xgb.DMatrix(x,y)
     param1 = {'silent':True
               ,'obj':'reg:linear'
