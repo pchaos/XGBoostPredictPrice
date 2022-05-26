@@ -15,6 +15,7 @@
 4.  tushare目前开始提供因子数据，等tushare因子数据提供的足够多后可以，可以直接使用tushare的因子数据做特征工程
 5.  tushare的免费token可以使用。
 6.  注册免费tushare token https://tushare.pro/register?reg=286095
+7.  运行前将你的token更新到 GetData.py中ts.set_token('your token here')
 
 
 #### 使用说明
