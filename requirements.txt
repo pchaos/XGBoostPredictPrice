@@ -1,0 +1,8 @@
+tushare
+xgboost
+TA_lib
+statsmodels
+matplotlib
+pandas
+numpy
+openpyxl
