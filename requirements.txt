@@ -6,3 +6,4 @@ matplotlib
 pandas
 numpy
 openpyxl
+python-dotenv
