@@ -22,3 +22,4 @@
 #### 使用说明
 
 1.  python xgboostmodel.py
+2.  欢迎大家更新上传新特征，请使用tushare数据，最好注明需要的tushare点数
