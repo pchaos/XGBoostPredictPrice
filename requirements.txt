@@ -1,9 +1,10 @@
-tushare
-xgboost
-TA_lib
-statsmodels
 matplotlib
-pandas
 numpy
 openpyxl
+pandas
+pytest
 python-dotenv
+statsmodels
+TA_lib
+tushare
+xgboost
