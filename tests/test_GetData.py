@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 '''test GetData
 Created on Tue 31 May 2022 12:47:01 PM PST
-Last Modified: Tue 31 May 2022 11:45:32 PM PST
+Last Modified: Fri 03 Jun 2022 10:54:09 PM PST
 '''
 from unittest import TestCase
 
 import pandas as pd
-
+import logging
 import GetData
 
+LOGGER = logging.getLogger(__name__)
 
-class TryTesting(TestCase):
+class GetDataTesting(TestCase):
 
     def setUp(self) -> None:
         self.gd = GetData.GetData()
@@ -37,3 +38,15 @@ class TryTesting(TestCase):
         newStockClumns = stockClumns.replace("ts_code", "code").split(",")
         allStocks.columns = newStockClumns
         self.assertTrue(allStocks.columns[0] == "code", f"{allStocks.columns[0]} != \"code\"")
+
+    def test_GetAStockData(self):
+        # 测试获取股票数据
+        allStocks = self.gd.GetAllStock()
+        LOGGER.info(allStocks.columns[0])
+        i=1
+        for code in allStocks[allStocks.columns[0]]:
+            LOGGER.info(f"{i}, {code}")
+            i+=1
+        counts = 4000
+        self.assertTrue(len(allStocks[allStocks.columns[0]]) > 4000, f"codes counts < {counts}" )
+
