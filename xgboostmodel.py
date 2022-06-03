@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-
+Last Modified: Fri 03 Jun 2022 10:29:06 PM PST
 @author: Administrator
 """
 
@@ -20,11 +20,8 @@ import GetData
 
 class BuildFeature(object):
     def __init__(self, ):
-        ts.set_token("d37e1279d92ac6d0470c5a14eb4dd227e4dfbaa8261e66ce2af19684")
-        self.pro = ts.pro_api()
-       
         self.tool=tools()
-    
+
     # def getastockdata(self,ts_code="000001",period=365):
     #     today = datetime.date.today()
     #     today = today.strftime('%Y%m%d')
@@ -42,7 +39,7 @@ class BuildFeature(object):
     #     sorteddata = data.sort_values(by="trade_date", ascending=True)
     #     sorteddata = sorteddata.reset_index(drop=True)
     #     return sorteddata
-    
+
     def splitbars(self,bars, y_days=5):
         ###
         # para1: stock code
@@ -52,23 +49,24 @@ class BuildFeature(object):
         
         df1 = bars[1:-y_days-1]
         df2 = bars['close'][-y_days-2:-1].tolist()
-        
-        y = round(((df2[-1] - df2[-y_days-1]) / df2[-1]) * 100, 2)
+
+        #  y = round(((df2[-1] - df2[-y_days-1]) / df2[-1]) * 100, 2)
+        y = round(((df2[-1] - df2[-y_days-1]) / df2[-1]) * 100, 3)
 
         return df1,y
-    
+
     def getfeatures(self,df,y):
         open_values=df['open'].values
         close_values=df['close'].values
         low_values=df['low'].values
         high_values=df['high'].values
         pct_chg=df['pct_chg'].values
-        
+
         feature={}
-        
+
         feature.update({"股票收益":y})
         feature.update({"股票名称":df.iloc[1]['ts_code']})
-        
+
         #==============================================
         ma5=talib.SMA(close_values,timeperiod=5)
         deg=self.tool.data_to_deg(ma5[-11:-1])
@@ -162,20 +160,11 @@ class BuildFeature(object):
         # else:
         #     self.realtimefeatures=self.realtimefeatures.append(feature,ignore_index=True)
         # print(self.features)
-        
-        return feature
-        
-    def getallstock(self):
 
-        allstock = self.pro.query('stock_basic', exchange='', list_status='L',
-                                  fields='ts_code,symbol,name,area,industry,list_date')
-        allstock = allstock[~allstock.name.str.contains('ST')]
-        # 重新索引
-        allstock = allstock.reset_index(drop=True)
-        return allstock
-    
+        return feature
+
     def run(self,days=[3,5]):#注意：days列表里必须至少有一项，且不为0
-        
+
         gd=GetData.GetData()
         feature0=pd.DataFrame()
         allstock=gd.GetAllStock()
@@ -186,21 +175,28 @@ class BuildFeature(object):
         for i in allstock.ts_code:
             try:
                 # time.sleep(0.15)
-                
+ 
                 bars=gd.GetAStockData(i)# 得到K线
-                
+
                 if len(bars)>100:
                     featureret=self.getfeatures(bars,y=0) #get today's feature
-                    feature0=feature0.append(featureret,ignore_index=True)
+                    #  feature0=feature0.append(featureret,ignore_index=True)
+                    #  feature0.append(featureret,ignore_index=True)
+                    #  print(f"{type(featureret)=}")
+                    #  print(f"{featureret=}")
+                    #  print(f"{pd.DataFrame.from_dict(featureret, orient='index').T}")
+                    #  feature0=pd.concat(feature0, pd.DataFrame(featureret), ignore_index=True)
+                    feature0=pd.concat([feature0, pd.DataFrame.from_dict(featureret, orient='index').T])
                     print(i)
                     for k in days:
                         df,y=self.splitbars(bars,y_days=k)
-                        
+ 
                         featureret=self.getfeatures(df,y) #get learning feature,which includes rewards
-                        exec("feature%s=feature%s.append(featureret,ignore_index=True)"%(k,k))
+                        exec(f"feature{k}s=pd.concat([feature{k}s, pd.DataFrame.from_dict(featureret, orient='index').T]")
+                        #  exec("feature%s=feature%s.append(featureret,ignore_index=True)"%(k,k))
                     j=j+1
                     # if j>100 :
-                        
+ 
                     #     break;   #这两行代码测试时使用
             except OSError:
                 pass
@@ -211,54 +207,54 @@ class BuildFeature(object):
             exec ("result.append(feature%s)"%k)
         return result
 
-bf=BuildFeature()
-days=[1,3,5,10,20]
-ret=bf.run(days=days)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
-predict_data=ret[0]
-today = datetime.date.today()
-today = today.strftime('%Y%m%d')
-writer = pd.ExcelWriter(today+'result.xlsx')
-for i in range(len(days)):
-   
-    data=ret[i+1]
-    
-    
-    
-    y=data['股票收益']
-    # x=data.iloc[:,3:]
-    x=data.drop(['股票收益','股票名称'],axis=1)
-    
-    # Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
-    dfull = xgb.DMatrix(x,y)
-    param1 = {'silent':True
-              ,'obj':'reg:linear'
-              ,"subsample":1
-              ,"max_depth":5
-              ,"eta":0.1
-              ,"gamma":2
-              ,"lambda":0.2
-              ,"alpha":0
-              ,"colsample_bytree":1
-              ,"colsample_bylevel":1
-              ,"colsample_bynode":1
-              ,"nfold":5}
-    num_round = 200
-    print("正在学习模型......")
-    bst=xgb.train(param1,dfull,num_round)
-    print("正在预测......")
-    
-    xtest=predict_data.drop(['股票收益','股票名称'],axis=1)
-    feature=xgb.DMatrix(xtest)
-    pred=bst.predict(feature)
-    predict_data['股票收益']=pred
+if __name__ == "__main__":
+    bf=BuildFeature()
+    days=[1,3,5,10,20]
+    ret=bf.run(days=days)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
+    predict_data=ret[0]
     today = datetime.date.today()
     today = today.strftime('%Y%m%d')
-    print("预测完成！")
-    columns=['股票名称','股票收益']
-    sorted=predict_data.sort_values(by="股票收益",ascending=False)[columns]
-    print("%s日涨幅最大股票预测结果："%(days[i]))
-    print(sorted.head(20) )
-    top20=sorted.head(20)
-    top20.to_excel(writer,sheet_name="%s日涨幅"%(days[i]))
-writer.save()
-writer.close()
+    writer = pd.ExcelWriter(today+'result.xlsx')
+    try:
+        for i in range(len(days)):
+            data=ret[i+1]
+
+            y=data['股票收益']
+            # x=data.iloc[:,3:]
+            x=data.drop(['股票收益','股票名称'],axis=1)
+
+            # Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
+            dfull = xgb.DMatrix(x,y)
+            param1 = {'silent':True
+                      ,'obj':'reg:linear'
+                      ,"subsample":1
+                      ,"max_depth":5
+                      ,"eta":0.1
+                      ,"gamma":2
+                      ,"lambda":0.2
+                      ,"alpha":0
+                      ,"colsample_bytree":1
+                      ,"colsample_bylevel":1
+                      ,"colsample_bynode":1
+                      ,"nfold":5}
+            num_round = 200
+            print("正在学习模型......")
+            bst=xgb.train(param1,dfull,num_round)
+            print("正在预测......")
+
+            xtest=predict_data.drop(['股票收益','股票名称'],axis=1)
+            feature=xgb.DMatrix(xtest)
+            pred=bst.predict(feature)
+            predict_data['股票收益']=pred
+            today = datetime.date.today()
+            today = today.strftime('%Y%m%d')
+            print("预测完成！")
+            columns=['股票名称','股票收益']
+            sorted=predict_data.sort_values(by="股票收益",ascending=False)[columns]
+            print("%s日涨幅最大股票预测结果："%(days[i]))
+            print(sorted.head(20) )
+            top20=sorted.head(20)
+            top20.to_excel(writer,sheet_name="%s日涨幅"%(days[i]))
+        writer.save()
+    finally:
+        writer.close()
