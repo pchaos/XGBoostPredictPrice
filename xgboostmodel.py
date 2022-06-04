@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Fri 03 Jun 2022 10:29:06 PM PST
+Last Modified: Sat 04 Jun 2022 10:36:37 AM PST
 @author: Administrator
 """
 
@@ -169,14 +169,14 @@ class BuildFeature(object):
         feature0=pd.DataFrame()
         allstock=gd.GetAllStock()
         for k in days:#定义几个空的dataframe
-            exec ("feature%s=pd.DataFrame()"%k)
+            exec("feature%s=pd.DataFrame()"%k)
+            #  print("feature%s=pd.DataFrame()"%k)
 
         j=0
-        for i in allstock.ts_code:
+        for code in allstock.ts_code:
             try:
                 # time.sleep(0.15)
- 
-                bars=gd.GetAStockData(i)# 得到K线
+                bars=gd.GetAStockData(code)# 得到K线
 
                 if len(bars)>100:
                     featureret=self.getfeatures(bars,y=0) #get today's feature
@@ -187,12 +187,12 @@ class BuildFeature(object):
                     #  print(f"{pd.DataFrame.from_dict(featureret, orient='index').T}")
                     #  feature0=pd.concat(feature0, pd.DataFrame(featureret), ignore_index=True)
                     feature0=pd.concat([feature0, pd.DataFrame.from_dict(featureret, orient='index').T])
-                    print(i)
+                    print(code)
                     for k in days:
                         df,y=self.splitbars(bars,y_days=k)
  
                         featureret=self.getfeatures(df,y) #get learning feature,which includes rewards
-                        exec(f"feature{k}s=pd.concat([feature{k}s, pd.DataFrame.from_dict(featureret, orient='index').T]")
+                        exec(f"feature{k}=pd.concat([feature{k}, pd.DataFrame.from_dict(featureret, orient='index').T])")
                         #  exec("feature%s=feature%s.append(featureret,ignore_index=True)"%(k,k))
                     j=j+1
                     # if j>100 :
@@ -223,7 +223,7 @@ if __name__ == "__main__":
             # x=data.iloc[:,3:]
             x=data.drop(['股票收益','股票名称'],axis=1)
 
-            # Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
+            Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
             dfull = xgb.DMatrix(x,y)
             param1 = {'silent':True
                       ,'obj':'reg:linear'
@@ -255,6 +255,6 @@ if __name__ == "__main__":
             print(sorted.head(20) )
             top20=sorted.head(20)
             top20.to_excel(writer,sheet_name="%s日涨幅"%(days[i]))
-        writer.save()
     finally:
+        writer.save()
         writer.close()
