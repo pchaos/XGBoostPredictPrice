@@ -13,7 +13,8 @@ def getTushareToken():
     if os.path.exists(".env"):
         # 存在文件".env"
         config = load_dotenv()
-
+        if config:
+            return os.environ.get("TUSHARE_TOKEN")
     else:
         print("You must set tushare token  in file:'.env' first!!!\n see example.env ")
         exit(1)

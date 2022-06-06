@@ -11,10 +11,11 @@ class GetData(object):
 
     def __init__(self):
         token = getTushareToken()
-        self.pro = ts.pro_api(token)
-        pass
+        ts.set_token(token)
+        print(f"token:{token}")
+        self.pro = ts.pro_api()
 
-    def GetAllStock(self):
+    def GetAllStock(self) -> pd.DataFrame:
 
         allstock = self.pro.query(
             'stock_basic',
