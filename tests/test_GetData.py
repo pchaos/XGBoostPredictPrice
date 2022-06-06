@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test GetData
 Created on Tue 31 May 2022 12:47:01 PM PST
-Last Modified: Fri 03 Jun 2022 10:54:09 PM PST
+Last Modified: Sat 04 Jun 2022 10:48:38 AM PST
 '''
 from unittest import TestCase
 
@@ -49,4 +49,5 @@ class GetDataTesting(TestCase):
             i+=1
         counts = 4000
         self.assertTrue(len(allStocks[allStocks.columns[0]]) > 4000, f"codes counts < {counts}" )
+        LOGGER.info(f"{type(allStocks)=}")
 
