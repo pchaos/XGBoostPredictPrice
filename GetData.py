@@ -3,8 +3,9 @@ import numpy as np
 import tushare as ts
 import datetime
 import talib
-from sometools import tools, getTushareToken
 import matplotlib.pyplot as plt
+from functools import lru_cache
+from sometools import tools, getTushareToken
 
 
 class GetData(object):
@@ -12,7 +13,7 @@ class GetData(object):
     def __init__(self):
         token = getTushareToken()
         ts.set_token(token)
-        print(f"token:{token}")
+        #  print(f"token:{token}")
         self.pro = ts.pro_api()
 
     def GetAllStock(self) -> pd.DataFrame:
@@ -27,6 +28,7 @@ class GetData(object):
         allstock = allstock.reset_index(drop=True)
         return allstock
 
+    @lru_cache(maxsize=8192)
     def GetAStockData(self, tscode='000001.SZ', period=250):
         today = datetime.date.today()
         today = today.strftime('%Y%m%d')

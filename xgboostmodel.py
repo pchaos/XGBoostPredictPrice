@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Sat 04 Jun 2022 10:36:37 AM PST
+Last Modified: Thu 16 Jun 2022 12:55:45 AM PST
 @author: Administrator
 """
 
@@ -22,31 +22,13 @@ class BuildFeature(object):
     def __init__(self, ):
         self.tool=tools()
 
-    # def getastockdata(self,ts_code="000001",period=365):
-    #     today = datetime.date.today()
-    #     today = today.strftime('%Y%m%d')
-    #     startday = datetime.date.today() - datetime.timedelta(days=period)
-    #     startday = startday.strftime('%Y%m%d')
-    #     # daily返回的是未复权数据
-    #     # data= self.pro.daily(ts_code=ts_code, start_date=startday, end_date=today)
-    #     # probar返回的是复权数据
-    #     # print(tscode)
-    #     data = ts.pro_bar(ts_code=ts_code, adj='qfq', start_date=startday, end_date=today)
-    #     if data is None:
-    #         data = pd.DataFrame(columns=['trade_date', 'B', 'C', 'D'])
-    #     if not data.empty:
-    #         data = data.sort_index(ascending=False)
-    #     sorteddata = data.sort_values(by="trade_date", ascending=True)
-    #     sorteddata = sorteddata.reset_index(drop=True)
-    #     return sorteddata
-
     def splitbars(self,bars, y_days=5):
         ###
         # para1: stock code
         # para2: accumulate reward in days,which means feature y
         # return k_lines of before y_days and y for y_days's reward
         ###
-        
+
         df1 = bars[1:-y_days-1]
         df2 = bars['close'][-y_days-2:-1].tolist()
 
@@ -163,8 +145,7 @@ class BuildFeature(object):
 
         return feature
 
-    def run(self,days=[3,5]):#注意：days列表里必须至少有一项，且不为0
-
+    def run(self,days=[3,5]) -> list:#注意：days列表里必须至少有一项，且不为0
         gd=GetData.GetData()
         feature0=pd.DataFrame()
         allstock=gd.GetAllStock()
@@ -186,26 +167,42 @@ class BuildFeature(object):
                     #  print(f"{featureret=}")
                     #  print(f"{pd.DataFrame.from_dict(featureret, orient='index').T}")
                     #  feature0=pd.concat(feature0, pd.DataFrame(featureret), ignore_index=True)
+                    #  feature01=pd.concat(feature01, pd.DataFrame(featureret), ignore_index=True)
                     feature0=pd.concat([feature0, pd.DataFrame.from_dict(featureret, orient='index').T])
-                    print(code)
+                    feature0.reset_index(drop=True, inplace=True)
+                    #  feature0=feature0.convert_dtypes()
+                    self._adjust_columns_type(feature0)
+                    print(f"({j}) {code}", end=" + ", flush=True)
                     for k in days:
                         df,y=self.splitbars(bars,y_days=k)
  
                         featureret=self.getfeatures(df,y) #get learning feature,which includes rewards
-                        exec(f"feature{k}=pd.concat([feature{k}, pd.DataFrame.from_dict(featureret, orient='index').T])")
+                        exec(f"feature{k}=pd.concat([feature{k}, pd.DataFrame.from_dict(featureret, orient='index').T]);feature{k}.reset_index(drop=True, inplace=True)")
+                        exec(f"self._adjust_columns_type(feature{k})")
                         #  exec("feature%s=feature%s.append(featureret,ignore_index=True)"%(k,k))
-                    j=j+1
-                    # if j>100 :
- 
-                    #     break;   #这两行代码测试时使用
+                    j+=1
+                    if j>100 :
+                       break;   #这两行代码测试时使用
+                else:
+                    print(f"{code}", end=" - ")
             except OSError:
                 pass
-            continue  
         result=[]
         result.append(feature0)
         for k in days:#定义几个空的dataframe
             exec ("result.append(feature%s)"%k)
         return result
+
+    @classmethod
+    def _adjust_columns_type(cls, a_df:pd.DataFrame) -> None:
+        """调整pandas.DataFrame columns 数据类型
+        """
+        #不需要改变类型的列名
+        exclude_columns=["股票名称"]
+        for col in a_df.columns:
+            if col in exclude_columns:
+                continue
+            a_df[col] = a_df[col].astype(float)
 
 if __name__ == "__main__":
     bf=BuildFeature()
@@ -214,16 +211,17 @@ if __name__ == "__main__":
     predict_data=ret[0]
     today = datetime.date.today()
     today = today.strftime('%Y%m%d')
-    writer = pd.ExcelWriter(today+'result.xlsx')
     try:
+        writer = pd.ExcelWriter(today+'result.xlsx')
         for i in range(len(days)):
             data=ret[i+1]
 
             y=data['股票收益']
             # x=data.iloc[:,3:]
             x=data.drop(['股票收益','股票名称'],axis=1)
+            print(f"{x=}\n{y=}")
 
-            Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
+            #  Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
             dfull = xgb.DMatrix(x,y)
             param1 = {'silent':True
                       ,'obj':'reg:linear'
@@ -255,6 +253,8 @@ if __name__ == "__main__":
             print(sorted.head(20) )
             top20=sorted.head(20)
             top20.to_excel(writer,sheet_name="%s日涨幅"%(days[i]))
+    except Exception as e:
+        print(e.args)
     finally:
         writer.save()
         writer.close()
