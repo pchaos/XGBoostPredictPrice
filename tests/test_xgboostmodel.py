@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Thu 16 Jun 2022 12:46:12 AM PST
+Last Modified: Thu 16 Jun 2022 01:19:21 AM PST
 '''
 import datetime
 import logging
@@ -152,6 +152,8 @@ class XGboostTesting(TestCase):
         return ret, days
 
     def test_bf_run(self):
+        """BuildFeature run test
+        """
         bf_old = self.bf_old
         ret, days = self.bf_run(bf_old)
 
