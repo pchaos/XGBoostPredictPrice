@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Thu 16 Jun 2022 06:43:10 PM PST
+Last Modified: Thu 16 Jun 2022 11:35:02 PM PST
 @author: chenxiong888
 """
 
@@ -145,12 +145,12 @@ class BuildFeature(object):
 
         return feature
 
-    def run(self,days=[3,5]) -> list:#注意：days列表里必须至少有一项，且不为0
+    def run(self,days=[3,5], testing=False) -> list:#注意：days列表里必须至少有一项，且不为0
         gd=GetData.GetData()
         feature0=pd.DataFrame()
         allstock=gd.GetAllStock()
         for k in days:#定义几个空的dataframe
-            exec("feature%s=pd.DataFrame()"%k)
+            exec(f"feature{k}=pd.DataFrame()")
             #  print("feature%s=pd.DataFrame()"%k)
 
         j=0
@@ -172,7 +172,10 @@ class BuildFeature(object):
                     feature0.reset_index(drop=True, inplace=True)
                     #  feature0=feature0.convert_dtypes()
                     self._adjust_columns_type(feature0)
-                    print(f"({j}) {code}", end=" + ", flush=True)
+                    if (j % 5 == 0):
+                        print(f"|{j} {code}", end=" ", flush=True)
+                    else:
+                        print(f"|{j} {code}", end=" ")
                     for k in days:
                         df,y=self.splitbars(bars,y_days=k)
  
@@ -181,7 +184,8 @@ class BuildFeature(object):
                         exec(f"self._adjust_columns_type(feature{k})")
                         #  exec("feature%s=feature%s.append(featureret,ignore_index=True)"%(k,k))
                     j+=1
-                    if j>100 :
+                    if testing and j>100 : 
+                        # 当testing为真时，测试数据为100
                        break;   #这两行代码测试时使用
                 else:
                     print(f"{code}", end=" - ")
@@ -236,9 +240,9 @@ if __name__ == "__main__":
                       ,"colsample_bynode":1
                       ,"nfold":5}
             num_round = 200
-            print("正在学习模型......")
+            print("......正在学习模型......")
             bst=xgb.train(param1,dfull,num_round)
-            print("正在预测......")
+            print("......正在预测......")
 
             xtest=predict_data.drop(['股票收益','股票名称'],axis=1)
             feature=xgb.DMatrix(xtest)
