@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Thu 16 Jun 2022 01:19:21 AM PST
+Last Modified: Thu 16 Jun 2022 11:38:20 PM PST
 '''
 import datetime
 import logging
@@ -24,7 +24,7 @@ def get_class_name(aclass):
 
 class BuildFeature_old(BuildFeature):
 
-    def run(self, days=[3, 5]) -> list:  #注意：days列表里必须至少有一项，且不为0
+    def run(self, days=[3, 5], testing=False) -> list:  #注意：days列表里必须至少有一项，且不为0
         gd = GetData.GetData()
         feature0 = pd.DataFrame()
         allstock = gd.GetAllStock()
@@ -50,7 +50,7 @@ class BuildFeature_old(BuildFeature):
                             "feature%s=feature%s.append(featureret,ignore_index=True)"
                             % (k, k))
                     j = j + 1
-                    if j > 100:
+                    if testing and j > 100:
                         break  #这两行代码测试时使用
             except OSError:
                 pass
@@ -147,7 +147,7 @@ class XGboostTesting(TestCase):
 
     def bf_run(self, bf):
         days = [1, 3, 5, 10, 20]
-        ret = bf.run(days=days)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
+        ret = bf.run(days=days, testing=True)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
         #  LOGGER.info(f"{get_class_name(bf)}\n{ret}")
         return ret, days
 
