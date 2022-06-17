@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Fri 17 Jun 2022 07:27:25 PM PST
+Last Modified: Sat 18 Jun 2022 12:40:15 AM PST
 @author: chenxiong888
 """
 
@@ -12,11 +12,14 @@ import xgboost as xgb
 import pandas as pd
 import datetime
 import time
-import tushare as ts
+import re
+#  import tushare as ts
 import talib
+import logging
 from sometools import tools
 import GetData
 
+LOGGER = logging.getLogger(__name__)
 
 class BuildFeature(object):
     def __init__(self, ):
@@ -207,6 +210,18 @@ class BuildFeature(object):
             if col in exclude_columns:
                 continue
             a_df[col] = a_df[col].astype(float)
+
+    @classmethod
+    def check_stock_code(cls, code:str=""):
+        """设定代码规则
+        指定某些股票代码是否剔除
+        return: 
+        """
+        # 返回股票代码以 0 3 6起始
+        res = re.search("^[0,3,6]", code)
+        if res is None:
+            LOGGER.info(f"{code} not match")
+        return res
 
 if __name__ == "__main__":
     bf=BuildFeature()

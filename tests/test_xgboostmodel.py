@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Fri 17 Jun 2022 07:33:39 PM PST
+Last Modified: Sat 18 Jun 2022 12:38:45 AM PST
 '''
 import datetime
 import logging
@@ -194,6 +194,27 @@ class XGboostTesting(TestCase):
         LOGGER.info(f"{df_ret2.describe().loc[['min','max','mean'],:]=}")
         LOGGER.info(f"after modified type: {ret2[0].convert_dtypes().dtypes=}")
         LOGGER.info(f"after modified type: {ret2[0].dtypes=}")
+
+    def test_check_stock_code(self):
+        codes = ["000001.SZ",
+            "300001.SZ",
+            "600001.SH",
+                 ]
+        for code in codes:
+            csc = BuildFeature.check_stock_code(code)
+            self.assertTrue(csc is not None, f"{code} must not be return None")
+            LOGGER.info(f"{code} match:{csc}")
+
+        codes = ["150001.SZ",
+            "200001.SZ",
+            "800001.SH",
+                 ]
+        for code in codes:
+            csc = BuildFeature.check_stock_code(code)
+            self.assertTrue(csc is None, f"{code} must not be return None")
+            LOGGER.info(f"{code} match:{csc}")
+
+
 
 
 if __name__ == "__main__":
