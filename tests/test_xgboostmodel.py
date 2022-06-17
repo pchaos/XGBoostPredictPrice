@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Fri 17 Jun 2022 04:36:47 PM PST
+Last Modified: Fri 17 Jun 2022 07:33:39 PM PST
 '''
 import datetime
 import logging
@@ -136,7 +136,7 @@ class XGboostTesting(TestCase):
                 sorted = predict_data.sort_values(by="股票收益",
                                                   ascending=False)[columns]
                 sorted['股票收益']=sorted['股票收益'].round(2)
-                print("%s日涨幅最大股票预测结果：" % (days[i]))
+                print(f"{days[i]}日涨幅最大股票预测结果：")
                 print(sorted.head(20))
                 top20 = sorted.head(20)
                 top20.to_excel(writer, sheet_name="%s日涨幅" % (days[i]))
