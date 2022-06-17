@@ -1,10 +1,6 @@
 # 使用XGBoost预测n日后的股价
 
-<<<<<<< HEAD
-*Last Modified: Fri 17 Jun 2022 12:10:10 PM PST*
-=======
-*Last Modified: Fri 17 Jun 2022 11:07:40 AM PST*
->>>>>>> master
+*Last Modified: Fri 17 Jun 2022 12:12:33 PM PST*
 
 #### 介绍
 使用XGBoost预测n日后的股价（使用tushare数据源）
