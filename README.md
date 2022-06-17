@@ -1,6 +1,6 @@
 # 使用XGBoost预测n日后的股价
 
-*Last Modified: Thu 16 Jun 2022 07:08:35 PM PST*
+*Last Modified: Fri 17 Jun 2022 11:57:19 AM PST*
 
 #### 介绍
 使用XGBoost预测n日后的股价（使用tushare数据源）
@@ -31,5 +31,21 @@ vim .env
 
 #### 使用说明
 
-1. python xgboostmodel.py
-2. 欢迎大家更新上传新特征，请使用tushare数据，最好注明需要的tushare点数
+1. 建议运行前创建一个单独python环境
+```bash
+# 创建名称为xpp的python环境
+conda create -n xpp
+conda activate xpp
+
+git clone https://github.com/pchaos/XGBoostPredictPrice.git
+cd XGBoostPredictPrice
+```
+
+2. python xgboostmodel.py
+3. 单元测试示例见tests目录;
+```bash
+# 测试例子
+pytest tests/test_xgboostmodel.py
+```
+
+4. 欢迎大家更新上传新特征，请使用tushare数据，最好注明需要的tushare点数
