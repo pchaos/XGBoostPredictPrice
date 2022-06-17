@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Thu 16 Jun 2022 11:35:02 PM PST
+Last Modified: Fri 17 Jun 2022 07:27:25 PM PST
 @author: chenxiong888
 """
 
@@ -253,7 +253,8 @@ if __name__ == "__main__":
             print("预测完成！")
             columns=['股票名称','股票收益']
             sorted=predict_data.sort_values(by="股票收益",ascending=False)[columns]
-            print("%s日涨幅最大股票预测结果："%(days[i]))
+            sorted['股票收益']=sorted['股票收益'].round(2)
+            print(f"{days[i]}日涨幅最大股票预测结果：")
             print(sorted.head(20) )
             top20=sorted.head(20)
             top20.to_excel(writer,sheet_name="%s日涨幅"%(days[i]))
