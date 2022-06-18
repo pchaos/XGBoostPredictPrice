@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Sat 18 Jun 2022 02:02:55 PM PST
+Last Modified: Sun 19 Jun 2022 01:16:50 AM PST
 '''
 import datetime
 import logging
@@ -32,17 +32,24 @@ class BuildFeature_old(BuildFeature):
             exec("feature%s=pd.DataFrame()" % k)
 
         j = 0
-        for i in allstock.ts_code:
+        for code, name in zip(allstock.ts_code, allstock.name):
             try:
                 # time.sleep(0.15)
-                bars = gd.GetAStockData(i)  # 得到K线
+                if (not self.check_stock(code)) or (self.check_stock(
+                        name, "^s|退$")):
+                    LOGGER.info(f"bypass {code} {name}")
+                    continue
+
+                bars = gd.GetAStockData(code)  # 得到K线
+                bars['name'] = name
                 if len(bars) > 100:
                     featureret = self.getfeatures(bars,
                                                   y=0)  #get today's feature
                     feature0 = feature0.append(featureret, ignore_index=True)
-                    print(i, end=", ")
+                    print(code, end=", ")
                     for k in days:
                         df, y = self.splitbars(bars, y_days=k)
+                        df['name'] = name
                         featureret = self.getfeatures(
                             df,
                             y)  #get learning feature,which includes rewards
@@ -101,7 +108,7 @@ class XGboostTesting(TestCase):
 
                 y = data['股票收益']
                 # x=data.iloc[:,3:]
-                x = data.drop(['股票收益', '股票名称'], axis=1)
+                x = data.drop(['股票收益', '股票代码', '股票名称'], axis=1)
                 print(f"{x=}\n{y=}")
 
                 #  Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
@@ -125,17 +132,17 @@ class XGboostTesting(TestCase):
                 bst = xgb.train(param1, dfull, num_round)
                 print("正在预测......")
 
-                xtest = predict_data.drop(['股票收益', '股票名称'], axis=1)
+                xtest = predict_data.drop(['股票收益', '股票代码', '股票名称'], axis=1)
                 feature = xgb.DMatrix(xtest)
                 pred = bst.predict(feature)
                 predict_data['股票收益'] = pred
                 today = datetime.date.today()
                 today = today.strftime('%Y%m%d')
                 print("预测完成！")
-                columns = ['股票名称', '股票收益']
+                columns = ['股票代码', '股票名称', '股票收益']
                 sorted = predict_data.sort_values(by="股票收益",
                                                   ascending=False)[columns]
-                sorted['股票收益']=sorted['股票收益'].round(2)
+                sorted['股票收益'] = sorted['股票收益'].round(2)
                 print(f"{days[i]}日涨幅最大股票预测结果：")
                 print(sorted.head(20))
                 top20 = sorted.head(20)
@@ -148,7 +155,8 @@ class XGboostTesting(TestCase):
 
     def bf_run(self, bf):
         days = [1, 3, 5, 10, 20]
-        ret = bf.run(days=days, testing=True)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
+        ret = bf.run(days=days,
+                     testing=True)  #得到特征矩阵，ret是一个list，每个元素是一个dataframe
         #  LOGGER.info(f"{get_class_name(bf)}\n{ret}")
         return ret, days
 
@@ -178,8 +186,8 @@ class XGboostTesting(TestCase):
         #  ret2[1].to_csv("/tmp/ret2.csv")
         for i in range(len(ret)):
             #  self.assertEqual(ret[i], ret2[i], f"result not equals:\n{ret[i]=}, {ret2[i]=}")
-            df_ret = ret[i].drop(columns='股票名称')
-            df_ret2 = ret2[i].drop(columns='股票名称')
+            df_ret = ret[i].drop(columns=['股票代码', '股票名称'], axis=1)
+            df_ret2 = ret2[i].drop(columns=['股票代码', '股票名称'], axis=1)
             # 5日20日均线        int64   why???
             LOGGER.info(f"{df_ret.dtypes=}")
             LOGGER.info(f"{df_ret2.dtypes=}")
@@ -195,44 +203,46 @@ class XGboostTesting(TestCase):
         LOGGER.info(f"after modified type: {ret2[0].convert_dtypes().dtypes=}")
         LOGGER.info(f"after modified type: {ret2[0].dtypes=}")
 
-    def test_check_stock_code(self):
-        codes = ["000001.SZ",
+    def test_check_stock(self):
+        codes = [
+            "000001.SZ",
             "300001.SZ",
             "600001.SH",
-                 ]
+        ]
         for code in codes:
-            csc = BuildFeature.check_stock_code(code)
+            csc = BuildFeature.check_stock(code)
             self.assertTrue(csc is not None, f"{code} must not be return None")
             LOGGER.info(f"{code} match:{csc}")
 
-        codes = ["150001.SZ",
+        codes = [
+            "150001.SZ",
             "200001.SZ",
             "800001.SH",
-                 ]
+        ]
         for code in codes:
-            csc = BuildFeature.check_stock_code(code)
+            csc = BuildFeature.check_stock(code)
             self.assertTrue(csc is None, f"{code} must not be return None")
             LOGGER.info(f"{code} match:{csc}")
 
-        codes = ["8150001.SZ.退",
+        codes = [
+            "8150001.SZ.退",
             "000001.退",
             "600001.2退",
-                 ]
+        ]
         for code in codes:
-            csc = BuildFeature.check_stock_code(code,"[^退]$")
+            csc = BuildFeature.check_stock(code, "[^退]$")
             self.assertTrue(csc is None, f"{code} must not be return None")
             LOGGER.info(f"{code} match:{csc}")
 
-        codes = ["8150001.SZ.退0",
+        codes = [
+            "8150001.SZ.退0",
             "000001.退1",
             "600001.2退2",
-                 ]
+        ]
         for code in codes:
-            csc = BuildFeature.check_stock_code(code, "[^退]$")
+            csc = BuildFeature.check_stock(code, "[^退]$")
             self.assertTrue(csc is not None, f"{code} must not be return None")
             LOGGER.info(f"{code} match:{csc}")
-
-
 
 
 if __name__ == "__main__":

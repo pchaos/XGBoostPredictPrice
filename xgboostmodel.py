@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Sat 18 Jun 2022 02:01:11 PM PST
+Last Modified: Sun 19 Jun 2022 01:18:53 AM PST
 @author: chenxiong888
 """
 
@@ -50,7 +50,8 @@ class BuildFeature(object):
         feature={}
 
         feature.update({"股票收益":y})
-        feature.update({"股票名称":df.iloc[1]['ts_code']})
+        feature.update({"股票代码":df.iloc[1]['ts_code']})
+        feature.update({"股票名称":df.iloc[1]['name']})
 
         #==============================================
         ma5=talib.SMA(close_values,timeperiod=5)
@@ -157,10 +158,15 @@ class BuildFeature(object):
             #  print("feature%s=pd.DataFrame()"%k)
 
         j=0
-        for code in allstock.ts_code:
+        for code, name in zip(allstock.ts_code, allstock.name):
             try:
                 # time.sleep(0.15)
+                if (not self.check_stock(code)) or (self.check_stock(name, "^s|退$")):
+                    LOGGER.info(f"bypass {code} {name}")
+                    continue
                 bars=gd.GetAStockData(code)# 得到K线
+                bars['name'] = name
+                #  LOGGER.info(f"{code} {name} {bars.iloc[1]}")
 
                 if len(bars)>100:
                     featureret=self.getfeatures(bars,y=0) #get today's feature
@@ -181,6 +187,7 @@ class BuildFeature(object):
                         print(f"|{j} {code}", end=" ")
                     for k in days:
                         df,y=self.splitbars(bars,y_days=k)
+                        df['name'] = name
  
                         featureret=self.getfeatures(df,y) #get learning feature,which includes rewards
                         exec(f"feature{k}=pd.concat([feature{k}, pd.DataFrame.from_dict(featureret, orient='index').T]);feature{k}.reset_index(drop=True, inplace=True)")
@@ -205,23 +212,25 @@ class BuildFeature(object):
         """调整pandas.DataFrame columns 数据类型
         """
         #不需要改变类型的列名
-        exclude_columns=["股票名称"]
+        exclude_columns=["股票代码",
+                         "股票名称",
+                         ]
         for col in a_df.columns:
             if col in exclude_columns:
                 continue
             a_df[col] = a_df[col].astype(float)
 
     @classmethod
-    def check_stock_code(cls, code:str="", pattern="^[036].*"):
+    def check_stock(cls, code_or_name:str="", pattern="^[036].*"):
         """设定代码规则
-        指定某些股票代码是否剔除
+        指定某些股票代码是否剔除(例如默认pattern, 保留深证、创业板、沪市，剔除北交所代码)
         return: 
         """
         # 返回股票代码以 0 3 6起始
-        res = re.search(pattern, code)
+        res = re.search(pattern, code_or_name)
         #  res = re.search("^[036].*[^退]$", code)
-        if res is None:
-            LOGGER.info(f"{code} not match")
+        #  if res is None:
+            #  LOGGER.info(f"{code_or_name} not match pattern {pattern}")
         return res
 
 if __name__ == "__main__":
@@ -238,7 +247,7 @@ if __name__ == "__main__":
 
             y=data['股票收益']
             # x=data.iloc[:,3:]
-            x=data.drop(['股票收益','股票名称'],axis=1)
+            x=data.drop(['股票收益','股票代码','股票名称'],axis=1)
             print(f"{x=}\n{y=}")
 
             #  Xtrain,Xtest,Ytrain,Ytest = TTS(x,y,test_size=0.3,random_state=420)
@@ -260,14 +269,14 @@ if __name__ == "__main__":
             bst=xgb.train(param1,dfull,num_round)
             print("......正在预测......")
 
-            xtest=predict_data.drop(['股票收益','股票名称'],axis=1)
+            xtest=predict_data.drop(['股票收益','股票代码','股票名称'],axis=1)
             feature=xgb.DMatrix(xtest)
             pred=bst.predict(feature)
             predict_data['股票收益']=pred
             today = datetime.date.today()
             today = today.strftime('%Y%m%d')
             print("预测完成！")
-            columns=['股票名称','股票收益']
+            columns=['股票代码','股票名称','股票收益']
             sorted=predict_data.sort_values(by="股票收益",ascending=False)[columns]
             sorted['股票收益']=sorted['股票收益'].round(2)
             print(f"{days[i]}日涨幅最大股票预测结果：")
