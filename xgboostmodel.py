@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Sat 18 Jun 2022 12:40:15 AM PST
+Last Modified: Sat 18 Jun 2022 02:01:11 PM PST
 @author: chenxiong888
 """
 
@@ -212,13 +212,14 @@ class BuildFeature(object):
             a_df[col] = a_df[col].astype(float)
 
     @classmethod
-    def check_stock_code(cls, code:str=""):
+    def check_stock_code(cls, code:str="", pattern="^[036].*"):
         """设定代码规则
         指定某些股票代码是否剔除
         return: 
         """
         # 返回股票代码以 0 3 6起始
-        res = re.search("^[0,3,6]", code)
+        res = re.search(pattern, code)
+        #  res = re.search("^[036].*[^退]$", code)
         if res is None:
             LOGGER.info(f"{code} not match")
         return res
