@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Sun 19 Jun 2022 12:28:44 PM PST
+Last Modified: Mon 20 Jun 2022 07:33:19 AM PST
 '''
 import datetime
 import logging
@@ -251,6 +251,26 @@ class XGboostTesting(TestCase):
             csc = BuildFeature.check_stock(code, "^[^*S]")
             self.assertTrue(csc is None, f"{code} must not be return None")
             LOGGER.info(f"{code} match:{csc}")
+
+    def test_check_stock2(self):
+        gd = GetData.GetData()
+        allstock = gd.GetAllStock()
+        exclude_stock = []
+        for code, name in zip(allstock.ts_code, allstock.name):
+            try:
+                # time.sleep(0.15)
+                if (not BuildFeature.check_stock(code)) or (
+                        BuildFeature.check_stock(name, "^[*S]|退$")):
+                    # 排除北交所，ST、退是整理
+                    LOGGER.info(f"bypass {code} {name}")
+                    exclude_stock.append({f"{code}": name})
+            except Exception as e:
+                print(e.args)
+
+        self.assertTrue(
+            len(exclude_stock) > 0,
+            f"exclude stock must not be zero:{exclude_stock}")
+        #  LOGGER.info(f"exclude_stock:{exclude_stock}")
 
 
 if __name__ == "__main__":
