@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Sun 19 Jun 2022 01:16:50 AM PST
+Last Modified: Sun 19 Jun 2022 12:28:44 PM PST
 '''
 import datetime
 import logging
@@ -242,6 +242,14 @@ class XGboostTesting(TestCase):
         for code in codes:
             csc = BuildFeature.check_stock(code, "[^退]$")
             self.assertTrue(csc is not None, f"{code} must not be return None")
+            LOGGER.info(f"{code} match:{csc}")
+        codes = [
+            "ST600001.2",
+            "*ST600001.2",
+        ]
+        for code in codes:
+            csc = BuildFeature.check_stock(code, "^[^*S]")
+            self.assertTrue(csc is None, f"{code} must not be return None")
             LOGGER.info(f"{code} match:{csc}")
 
 

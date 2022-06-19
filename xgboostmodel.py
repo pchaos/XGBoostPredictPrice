@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Sun 19 Jun 2022 01:18:53 AM PST
+Last Modified: Sun 19 Jun 2022 12:33:51 PM PST
 @author: chenxiong888
 """
 
@@ -161,7 +161,8 @@ class BuildFeature(object):
         for code, name in zip(allstock.ts_code, allstock.name):
             try:
                 # time.sleep(0.15)
-                if (not self.check_stock(code)) or (self.check_stock(name, "^s|退$")):
+                if (not self.check_stock(code)) or (self.check_stock(name, "^[*S]|退$")):
+                    # 排除北交所，ST、退是整理
                     LOGGER.info(f"bypass {code} {name}")
                     continue
                 bars=gd.GetAStockData(code)# 得到K线
