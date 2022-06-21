@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 2 10:01:10 2022
-Last Modified: Thu 16 Jun 2022 06:42:55 PM PST
+Last Modified: Tue 21 Jun 2022 12:50:36 AM PST
 @author: chenxiong888
 """
 
@@ -37,6 +37,11 @@ class GetData(object):
 
     @lru_cache(maxsize=8192)
     def GetAStockData(self, tscode='000001.SZ', period=250):
+        """获取股票数据
+tushare返回pd.DataFrame, 字段类型：
+ts_code trade_date close open high low pre_close change pct_chg vol amount
+
+        """
         today = datetime.date.today()
         today = today.strftime('%Y%m%d')
         startday = datetime.date.today() - datetime.timedelta(days=period)

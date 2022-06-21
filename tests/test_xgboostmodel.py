@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''test sometools
 Created on Mon 07 Jun 2022 05:56:35 PM PST
-Last Modified: Mon 20 Jun 2022 07:33:19 AM PST
+Last Modified: Tue 21 Jun 2022 12:31:10 AM PST
 '''
 import datetime
 import logging
@@ -12,7 +12,7 @@ from unittest import TestCase
 import pandas as pd
 import xgboost as xgb
 
-import GetData
+import getData
 from xgboostmodel import BuildFeature
 
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def get_class_name(aclass):
 class BuildFeature_old(BuildFeature):
 
     def run(self, days=[3, 5], testing=False) -> list:  #注意：days列表里必须至少有一项，且不为0
-        gd = GetData.GetData()
+        gd = getData.GetData()
         feature0 = pd.DataFrame()
         allstock = gd.GetAllStock()
         for k in days:  #定义几个空的dataframe
@@ -253,7 +253,7 @@ class XGboostTesting(TestCase):
             LOGGER.info(f"{code} match:{csc}")
 
     def test_check_stock2(self):
-        gd = GetData.GetData()
+        gd = getData.GetData()
         allstock = gd.GetAllStock()
         exclude_stock = []
         for code, name in zip(allstock.ts_code, allstock.name):

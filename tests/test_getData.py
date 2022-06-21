@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-'''test GetData
+'''test getData
 Created on Tue 31 May 2022 12:47:01 PM PST
-Last Modified: Sat 04 Jun 2022 10:48:38 AM PST
+Last Modified: Tue 21 Jun 2022 12:27:47 AM PST
 '''
 from unittest import TestCase
 
 import pandas as pd
 import logging
-import GetData
+import getData
 
 LOGGER = logging.getLogger(__name__)
 
 class GetDataTesting(TestCase):
 
     def setUp(self) -> None:
-        self.gd = GetData.GetData()
+        self.gd = getData.GetData()
 
     def tearDown(self):
         self.gd = None

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 22 10:01:10 2022
-Last Modified: Sun 19 Jun 2022 12:33:51 PM PST
+Last Modified: Tue 21 Jun 2022 12:36:36 AM PST
 @author: chenxiong888
 """
 
@@ -11,13 +11,13 @@ import xgboost as xgb
 # from sklearn.metrics import mean_squared_error as MSE
 import pandas as pd
 import datetime
-import time
+#  import time
 import re
 #  import tushare as ts
 import talib
 import logging
 from sometools import tools
-import GetData
+import getData
 
 LOGGER = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ class BuildFeature(object):
         return feature
 
     def run(self,days=[3,5], testing=False) -> list:#注意：days列表里必须至少有一项，且不为0
-        gd=GetData.GetData()
+        gd=getData.GetData()
         feature0=pd.DataFrame()
         allstock=gd.GetAllStock()
         for k in days:#定义几个空的dataframe
